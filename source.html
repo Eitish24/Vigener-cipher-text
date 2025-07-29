@@ -222,23 +222,38 @@
 
   &lt;script&gt;
     function vigenere(text, key, mode) {
-      text = text.toLowerCase().replace(/[^a-z]/g, '');
-      key = key.toLowerCase().replace(/[^a-z]/g, '');
-      let result = '';
-      for (let i = 0, j = 0; i < text.length; i++) {
-        const p = text.charCodeAt(i) - 97;
-        const k = key.charCodeAt(j % key.length) - 97;
-        let c;
-        if (mode === 'encrypt') {
-          c = (p + k) % 26;
-        } else {
-          c = (p - k + 26) % 26;
-        }
-        result += String.fromCharCode(c + 97);
-        j++;
-      }
-      return result;
+  text = text.toLowerCase().replace(/[^a-z]/g, '');
+  key = key.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+  if (key.length === 0) {
+    alert("Key must contain at least one letter or digit!");
+    return "";
+  }
+
+  let result = '';
+  for (let i = 0, j = 0; i < text.length; i++) {
+    const p = text.charCodeAt(i) - 97;
+
+    let kChar = key[j % key.length];
+    let k;
+    if (/[a-z]/.test(kChar)) {
+      k = kChar.charCodeAt(0) - 97; // letters a-z → 0-25
+    } else {
+      k = parseInt(kChar);          // digits 0-9 → 0-9
     }
+
+    let c;
+    if (mode === 'encrypt') {
+      c = (p + k) % 26;
+    } else {
+      c = (p - k + 26) % 26;
+    }
+
+    result += String.fromCharCode(c + 97);
+    j++;
+  }
+  return result;
+}
+
 
     function showPlainInput() {
       document.getElementById('start-options').style.display = 'none';
