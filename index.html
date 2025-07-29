@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vigenère Cipher Tool</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #f8f9fa, #e0f7fa);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      text-align: center;
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+
+    h1 {
+      margin-bottom: 24px;
+      font-size: 26px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    textarea {
+      width: 90%;
+      height: 60px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: none;
+    }
+
+    #key-input, #file-key-input {
+      width: 90%;
+      height: auto;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .button-group {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 10px 0 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .output-label {
+      margin-top: 25px;
+      font-weight: bold;
+      font-size: 16px;
+      text-align: left;
+    }
+
+    .output-box {
+      width: 90%;
+      margin: 10px auto 0 auto;
+      padding: 10px;
+      min-height: 60px;
+      background: #f1f1f1;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+      text-align: left;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      background-color: #28a745;
+    }
+
+    .copy-btn:hover {
+      background-color: #1c12ce;
+    }
+
+    .back-btn {
+      background-color: #28a745;
+    }
+
+    .back-btn:hover {
+      background-color: #1c12ce;
+    }
+
+    input[type="file"] {
+      margin-top: 15px;
+    }
+
+    .code-circle {
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      background-color: #00796b;
+      color: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 999;
+    }
+
+    .code-circle:hover {
+      background-color: #004d40;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Code Button -->
+    <div class="code-circle" onclick="window.location.href='source.html'">&lt;&gt;</div>
+
+    <h1>Vigenère Cipher Tool</h1>
+
+    <!-- Start Options -->
+    <div id="start-options">
+      <button onclick="showPlainInput()">Enter Text</button>
+      <button onclick="showFileInput()">Upload Text File</button>
+    </div>
+
+    <!-- Text Input Section -->
+    <div id="text-input-section" style="display:none;">
+      <label for="text-input">Enter your text:</label>
+      <textarea id="text-input" placeholder="Type your message..."></textarea>
+
+      <label for="key-input">Enter key:</label>
+      <input type="text" id="key-input" placeholder="Enter key">
+
+      <div class="button-group">
+        <button onclick="processText('encrypt')">Encrypt</button>
+        <button onclick="processText('decrypt')">Decrypt</button>
+      </div>
+
+      <div class="button-group">
+        <button class="back-btn" onclick="goBack()">🔙 Back</button>
+      </div>
+    </div>
+
+    <!-- File Input Section -->
+    <div id="file-input-section" style="display:none;">
+      <label for="file">Select a text file:</label>
+      <input type="file" id="file" accept=".txt">
+
+      <label for="file-key-input">Enter key:</label>
+      <input type="text" id="file-key-input" placeholder="Enter key">
+
+      <div class="button-group">
+        <button onclick="processFile('encrypt')">Encrypt</button>
+        <button onclick="processFile('decrypt')">Decrypt</button>
+        <div class="button-group">
+          <button class="back-btn" onclick="goBack()">🔙 Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Output Section -->
+    <div id="text-output-section" style="display:none;">
+      <div class="output-label" id="text-output-label"></div>
+      <div class="output-box" id="text-output-result"></div>
+      <button class="copy-btn" onclick="copyText('text-output-result')">📋 Copy Text</button>
+    </div>
+
+    <!-- File Output Section -->
+    <div id="file-output-section" style="display:none;">
+      <div class="output-label" id="file-output-label"></div>
+      <div class="output-box" id="file-output-result"></div>
+      <button class="copy-btn" onclick="copyText('file-output-result')">📋 Copy Text</button>
+      <button class="copy-btn" onclick="downloadFile()">⬇️ Download File</button>
+    </div>
+  </div>
+
+  <script>
+    function vigenere(text, key, mode) {
+  text = text.toLowerCase().replace(/[^a-z]/g, '');
+  key = key.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+  if (key.length === 0) {
+    alert("Key must contain at least one letter or digit!");
+    return "";
+  }
+
+  let result = '';
+  for (let i = 0, j = 0; i < text.length; i++) {
+    const p = text.charCodeAt(i) - 97;
+
+    let kChar = key[j % key.length];
+    let k;
+    if (/[a-z]/.test(kChar)) {
+      k = kChar.charCodeAt(0) - 97; // letters a-z → 0-25
+    } else {
+      k = parseInt(kChar);          // digits 0-9 → 0-9
+    }
+
+    let c;
+    if (mode === 'encrypt') {
+      c = (p + k) % 26;
+    } else {
+      c = (p - k + 26) % 26;
+    }
+
+    result += String.fromCharCode(c + 97);
+    j++;
+  }
+  return result;
+}
+
+
+    function showPlainInput() {
+      document.getElementById('start-options').style.display = 'none';
+      document.getElementById('text-input-section').style.display = 'block';
+    }
+
+    function showFileInput() {
+      document.getElementById('start-options').style.display = 'none';
+      document.getElementById('file-input-section').style.display = 'block';
+    }
+
+    function goBack() {
+      document.getElementById('text-input-section').style.display = 'none';
+      document.getElementById('file-input-section').style.display = 'none';
+      document.getElementById('text-output-section').style.display = 'none';
+      document.getElementById('file-output-section').style.display = 'none';
+      document.getElementById('start-options').style.display = 'block';
+    }
+
+    function processText(mode) {
+      const text = document.getElementById('text-input').value;
+      const key = document.getElementById('key-input').value;
+      if (!text || !key) {
+        alert("Please enter both text and key.");
+        return;
+      }
+      const result = vigenere(text, key, mode);
+      document.getElementById('text-output-label').textContent =
+        mode === "encrypt" ? "Cipher Text:" : "Plain Text:";
+      document.getElementById('text-output-result').textContent = result;
+      document.getElementById('text-output-section').style.display = 'block';
+    }
+
+    function processFile(mode) {
+      const fileInput = document.getElementById('file');
+      const key = document.getElementById('file-key-input').value;
+      if (!fileInput.files[0] || !key) {
+        alert("Please select a file and enter a key.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const content = e.target.result;
+        const result = vigenere(content, key, mode);
+        document.getElementById('file-output-label').textContent =
+          mode === "encrypt" ? "Cipher Text:" : "Plain Text:";
+        document.getElementById('file-output-result').textContent = result;
+        document.getElementById('file-output-section').style.display = 'block';
+      };
+      reader.readAsText(fileInput.files[0]);
+    }
+
+    function copyText(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text)
+        .then(() => alert("Text copied to clipboard!"))
+        .catch(err => console.error("Copy failed:", err));
+    }
+
+    function downloadFile() {
+      const content = document.getElementById("file-output-result").textContent;
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "output.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
